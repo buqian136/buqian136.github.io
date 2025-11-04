@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>记得想我</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #4a6fa5;
+            margin: 20px 0;
+            font-size: 2.2rem;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .description {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            line-height: 1.6;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            font-weight: bold;
+        }
+
+        #startBtn {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        #startBtn:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+
+        #stopBtn {
+            background-color: #f44336;
+            color: white;
+        }
+
+        #stopBtn:hover {
+            background-color: #da190b;
+            transform: translateY(-2px);
+        }
+
+        .tip-window {
+            position: fixed;
+            width: 250px;
+            min-height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.25);
+            z-index: 1000;
+            font-size: 1.5rem;
+            font-weight: bold;
+            animation: fadeIn 0.3s ease;
+            cursor: pointer;
+            user-select: none;
+            line-height: 1.4;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .counter {
+            font-size: 1.3rem;
+            margin: 15px 0;
+            color: #4a6fa5;
+            font-weight: bold;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 10px 20px;
+            border-radius: 30px;
+            display: inline-block;
+        }
+
+        .instructions {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            max-width: 500px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        footer {
+            margin-top: 30px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            button {
+                padding: 10px 20px;
+                font-size: 1rem;
+            }
+
+            .tip-window {
+                width: 280px;
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>记得想我</h1>
+
+        <div class="description">
+            <p>区区这些行代码，写不尽我对你的思念</p>
+        </div>
+
+        <div class="controls">
+            <button id="startBtn">开始</button>
+            <button id="stopBtn">停止</button>
+        </div>
+
+        <div class="counter">
+            已显示提醒: <span id="tipCount">0</span> 个
+        </div>
+
+        <div class="instructions">
+            <p>提示：点击任意提醒窗口可将其关闭，或按空格键关闭所有提醒。</p>
+        </div>
+    </div>
+
+    <footer>
+        <p>好想你</p>
+    </footer>
+
+    <script>
+        // 温馨提醒列表
+        const tips = [
+            "多喝水哦~", "保持微笑呀", "每天都要元气满满",
+            "记得吃水果", "保持好心情", "好好爱自己",
+            "我想你了", "梦想成真", "期待下一次见面",
+            "金榜题名", "顺顺利利", "早点休息",
+            "愿所有烦恼都消失", "别熬夜", "今天过得开心嘛",
+            "天冷了，多穿衣服", "记得按时吃饭", "你是最棒的",
+            "一切都会好起来的", "保持积极心态", "注意休息",
+            "相信你自己", "加油，你可以的", "今天也要开心哦",
+            "保持健康", "笑口常开", "心想事成", "万事如意",
+            "平安喜乐", "好运连连", "前程似锦", "幸福美满",
+            "希望你睡个好觉","一直在一起","心里都是你",
+            "最爱小三土饱饱"
+        ];
+
+        // 背景颜色列表
+        const bgColors = [
+            'lightpink', 'skyblue', 'lightgreen', 'lavender',
+            'lightyellow', 'plum', 'coral', 'bisque',
+            'aquamarine', 'mistyrose', 'honeydew',
+            'lavenderblush', 'oldlace', 'lightcyan', 'peachpuff',
+            'lightsteelblue', 'palegoldenrod', 'thistle'
+        ];
+
+        let tipInterval;
+        let tipCount = 0;
+        const maxTips = 520; // 设置为520个弹窗
+
+        // 获取DOM元素
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const tipCountElement = document.getElementById('tipCount');
+
+        // 开始显示弹窗
+        startBtn.addEventListener('click', function() {
+            if (tipInterval) {
+                clearInterval(tipInterval);
+            }
+
+            // 先清除现有的弹窗
+            document.querySelectorAll('.tip-window').forEach(window => {
+                window.remove();
+            });
+
+            tipCount = 0;
+            tipCountElement.textContent = tipCount;
+
+            // 设置弹窗间隔为150ms（原来的2倍速度）
+            tipInterval = setInterval(createTipWindow, 150);
+        });
+
+        // 停止弹窗
+        stopBtn.addEventListener('click', function() {
+            if (tipInterval) {
+                clearInterval(tipInterval);
+                tipInterval = null;
+            }
+        });
+
+        // 创建弹窗函数
+        function createTipWindow() {
+            if (tipCount >= maxTips) {
+                clearInterval(tipInterval);
+                tipInterval = null;
+                return;
+            }
+
+            // 随机选择提示和颜色
+            const randomTip = tips[Math.floor(Math.random() * tips.length)];
+            const randomColor = bgColors[Math.floor(Math.random() * bgColors.length)];
+
+            // 创建弹窗元素
+            const tipWindow = document.createElement('div');
+            tipWindow.className = 'tip-window';
+            tipWindow.textContent = randomTip;
+            tipWindow.style.backgroundColor = randomColor;
+
+            // 随机位置（确保在视口内）
+            const windowWidth = 375; // 固定宽度
+            const windowHeight = 90; // 固定高度
+            const maxX = window.innerWidth - windowWidth;
+            const maxY = window.innerHeight - windowHeight;
+
+            const randomX = Math.floor(Math.random() * maxX);
+            const randomY = Math.floor(Math.random() * maxY);
+
+            tipWindow.style.left = `${randomX}px`;
+            tipWindow.style.top = `${randomY}px`;
+
+            // 点击关闭弹窗
+            tipWindow.addEventListener('click', function() {
+                this.remove();
+            });
+
+            // 添加到页面
+            document.body.appendChild(tipWindow);
+
+            // 更新计数器
+            tipCount++;
+            tipCountElement.textContent = tipCount;
+
+            // 添加轻微浮动动画
+            setTimeout(() => {
+                tipWindow.style.transition = 'transform 0.3s ease';
+                tipWindow.style.transform = 'translateY(-5px)';
+            }, 50);
+        }
+
+        // 空格键关闭所有弹窗
+        document.addEventListener('keydown', function(event) {
+            if (event.code === 'Space') {
+                document.querySelectorAll('.tip-window').forEach(window => {
+                    window.remove();
+                });
+                tipCount = 0;
+                tipCountElement.textContent = tipCount;
+
+                if (tipInterval) {
+                    clearInterval(tipInterval);
+                    tipInterval = null;
+                }
+            }
+        });
+
+        // 触摸设备支持：双指点击停止弹窗
+        let touchCount = 0;
+        document.addEventListener('touchstart', function() {
+            touchCount++;
+
+            if (touchCount >= 2) {
+                document.querySelectorAll('.tip-window').forEach(window => {
+                    window.remove();
+                });
+                tipCount = 0;
+                tipCountElement.textContent = tipCount;
+
+                if (tipInterval) {
+                    clearInterval(tipInterval);
+                    tipInterval = null;
+                }
+
+                // 重置触摸计数
+                setTimeout(() => {
+                    touchCount = 0;
+                }, 500);
+            }
+
+            // 1秒后重置触摸计数
+            setTimeout(() => {
+                touchCount = 0;
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
